@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Certificate Generator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Certificate Generator</h1>
+
+        {% if error %}
+            <div class="error">
+                <span>{{ error }}</span>
+                <span class="close-btn">&times;</span>
+            </div>
+        {% endif %}
+
+        <!-- Upload Form -->
+        <form method="POST" enctype="multipart/form-data">
+            <label for="excel_file">Upload Excel File:</label>
+            <input type="file" name="excel_file" id="excel_file" accept=".xlsx,.xls" required>
+
+            <label for="paragraph">Type Certificate Paragraph:</label>
+            <textarea name="paragraph" id="paragraph" rows="12" placeholder="Write your certificate text here..." required></textarea>
+
+            <button type="submit">Generate Certificates</button>
+        </form>
+
+        <!-- Progress Bar -->
+        <div id="progress-container" style="display:none;">
+            <p id="progress-text">Generating certificates...</p>
+            <progress id="progress-bar" value="0" max="100"></progress>
+        </div>
+
+        <!-- Download & Success Message -->
+        {% if generated %}
+            <div class="success-message" style="text-align:center; margin-top:20px;">
+                <p><strong>✅ Generated {{ total }} certificate{{ 's' if total > 1 else '' }}!</strong></p>
+                <a href="{{ url_for('download_zip') }}">
+                    <button>Download All Certificates</button>
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        const form = document.querySelector("form");
+        const progressContainer = document.getElementById("progress-container");
+        const progressBar = document.getElementById("progress-bar");
+        const progressText = document.getElementById("progress-text");
+
+        // Show progress bar on form submit
+        form.addEventListener("submit", () => {
+            const prevSuccess = document.querySelector(".success-message");
+            if (prevSuccess) prevSuccess.remove();
+
+            progressContainer.style.display = "block";
+            progressBar.value = 0;
+            progressText.innerText = "Generating certificates...";
+
+            // Simulate partial progress while server processes
+            let value = 0;
+            const interval = setInterval(() => {
+                if (value < 95) {
+                    value += 1;
+                    progressBar.value = value;
+                } else {
+                    clearInterval(interval);
+                }
+            }, 50);
+        });
+
+        // Set progress to 100% if generation was successful
+        window.addEventListener("load", () => {
+            const success = document.querySelector(".success-message");
+            if (success) {
+                progressContainer.style.display = "block";
+                progressBar.value = 100;
+                progressText.innerText = "✅ Certificates generated!";
+            }
+        });
+
+        // Close button for error messages
+        const closeBtn = document.querySelector(".close-btn");
+        if (closeBtn) {
+            closeBtn.addEventListener("click", () => {
+                closeBtn.parentElement.remove();
+            });
+        }
+
+        // Auto-hide error after 4 seconds
+        const errorBox = document.querySelector(".error");
+        if (errorBox) {
+            setTimeout(() => {
+                errorBox.style.opacity = "0";
+                errorBox.style.transition = "opacity 0.5s ease";
+                setTimeout(() => errorBox.remove(), 500);
+            }, 4000);
+        }
+
+        // Hide previous success message and progress bar when a new file is selected
+        const excelInput = document.getElementById("excel_file");
+        excelInput.addEventListener("change", () => {
+            const prevSuccess = document.querySelector(".success-message");
+            if (prevSuccess) prevSuccess.remove();
+
+            // Hide and reset progress bar
+            progressContainer.style.display = "none";
+            progressBar.value = 0;
+            progressText.innerText = "Generating certificates...";
+        });
+    </script>
+</body>
+</html>

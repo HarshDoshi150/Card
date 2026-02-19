@@ -1,0 +1,170 @@
+/* ---------------- General Body ---------------- */
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #f4f6f8; 
+    color: #333;
+    padding: 40px 20px;
+    margin: 0;
+}
+
+/* ---------------- Card Container ---------------- */
+.container {
+    background: #fff;
+    max-width: 750px;
+    margin: auto;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
+
+/* ---------------- Header ---------------- */
+h1 {
+    text-align: center;
+    color: #ab7d3e;
+    margin-bottom: 30px;
+}
+
+/* ---------------- Labels Above Fields ---------------- */
+label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 6px;
+    color: #333;
+}
+
+/* ---------------- Input Fields and Textarea ---------------- */
+input[type="file"], textarea {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    margin-bottom: 15px;
+    box-sizing: border-box;
+    transition: 0.3s;
+}
+
+input[type="file"]:focus, textarea:focus {
+    border-color: #ab7d3e;
+    box-shadow: 0 0 5px rgba(171,125,62,0.4);
+}
+
+/* Textarea resizing */
+textarea {
+    resize: vertical;
+    min-height: 150px;
+}
+
+/* ---------------- Buttons ---------------- */
+button {
+    margin-top: 20px;
+    padding: 14px;
+    font-size: 18px;
+    background-color: #ab7d3e; /* lighter, friendly greenish */
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    background-color: #d0a869; /* lighter hover effect */
+}
+
+/* Download Button inside <a> */
+a button {
+    width: 230px;
+    display: inline-block;
+    margin-top: 10px;
+    background-color: #4CAF50; /* soft green */
+    color: #fff;
+}
+
+a button:hover {
+    background-color: #6FCF97; /* lighter green on hover */
+}
+
+/* ---------------- Error Messages ---------------- */
+.error {
+    position: relative;
+    background-color: #ffe6e6;  /* light red */
+    color: #b30000;             /* dark red text */
+    padding: 14px 40px 14px 14px;
+    border-radius: 8px;
+    border-left: 6px solid #b30000;
+    margin-bottom: 20px;
+    font-weight: 500;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+.close-btn {
+    position: absolute;
+    right: 12px;
+    top: 8px;
+    cursor: pointer;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* ---------------- Progress Container ---------------- */
+#progress-container {
+    margin-top: 20px;
+}
+
+progress {
+    width: 100%;
+    height: 20px;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+#progress-text {
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
+}
+
+/* ---------------- Success Message ---------------- */
+.success-message {
+    background-color: #D1FAE5;   /* light green background */
+    color: #047857;               /* green text */
+    padding: 14px;
+    border-radius: 8px;
+    margin-top: 20px;
+    font-weight: 500;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.success-message strong {
+    font-weight: 700; /* ensures bold for generated count */
+}
+
+/* ---------------- Responsive Adjustments ---------------- */
+@media (max-width: 768px) {
+    .container {
+        padding: 30px 20px;
+    }
+
+    button, a button {
+        width: 100%;
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 20px 10px;
+    }
+
+    h1 {
+        font-size: 24px;
+    }
+
+    textarea {
+        min-height: 120px;
+    }
+}
