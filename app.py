@@ -12,7 +12,7 @@ import re
 
 # ----------------- App Setup ----------------- #
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "fallback-key")  # production safe
+app.secret_key = os.environ.get("SECRET_KEY", "fallback-key")
 app.config["SESSION_TYPE"] = "filesystem"
 app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # 10MB file limit
 Session(app)
@@ -58,18 +58,22 @@ def draw_paragraph(draw, text, font, x, y, max_width, line_spacing):
     words = text.split()
     lines = []
     current_line = ""
+
     for word in words:
         test_line = current_line + (" " + word if current_line else word)
         bbox = draw.textbbox((0, 0), test_line, font=font)
         width = bbox[2] - bbox[0]
+
         if width <= max_width:
             current_line = test_line
         else:
             if current_line:
                 lines.append(current_line)
             current_line = word
+
     if current_line:
         lines.append(current_line)
+
     current_y = y
     for line in lines:
         draw.text((x, current_y), line, font=font, fill=BLACK)
@@ -79,7 +83,7 @@ def draw_paragraph(draw, text, font, x, y, max_width, line_spacing):
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
-        # Clear previous ZIP
+
         if "cert_zip" in session:
             session.pop("cert_zip")
 
@@ -89,7 +93,7 @@ def index():
         if not excel_file or not paragraph_template:
             return render_template("index.html", error="Please upload Excel and type paragraph.")
 
-        # --------------------- Read Excel Safely --------------------- #
+        # --------------------- Read Excel --------------------- #
         try:
             data = pd.read_excel(excel_file, dtype=str, engine="openpyxl")
             data.columns = data.columns.str.strip().str.title()
@@ -97,18 +101,22 @@ def index():
             logging.exception("Failed to read Excel")
             return render_template("index.html", error=f"Invalid Excel file: {str(e)}")
 
-        # --------------------- REQUIRED COLUMN CHECK --------------------- #
+        # --------------------- Required Column Check --------------------- #
         required_columns = ["Name", "Month"]
         missing_columns = [col for col in required_columns if col not in data.columns]
+
         if missing_columns:
             return render_template(
                 "index.html",
                 error=f"Missing required column(s): {', '.join(missing_columns)}"
             )
 
-        # --------------------- PLACEHOLDER VALIDATION --------------------- #
+        # --------------------- Placeholder Validation --------------------- #
         placeholders_in_template = re.findall(r"{(.*?)}", paragraph_template)
-        missing_placeholders = [ph for ph in placeholders_in_template if ph.title() not in data.columns]
+        missing_placeholders = [
+            ph for ph in placeholders_in_template if ph.title() not in data.columns
+        ]
+
         if missing_placeholders:
             return render_template(
                 "index.html",
@@ -126,20 +134,30 @@ def index():
                 if not name:
                     continue
 
-                # Replace placeholders
-                replacements = {f"{{{ph}}}": str(row.get(ph.title(), "N/A")).strip() for ph in placeholders_in_template}
+                # ----------------- AUTO % FORMATTING ----------------- #
                 paragraph = paragraph_template
-                for placeholder, val in replacements.items():
-                    paragraph = paragraph.replace(placeholder, val)
 
-                # Format Month
+                for ph in placeholders_in_template:
+                    raw_value = str(row.get(ph.title(), "N/A")).strip()
+
+                    # Auto add % if numeric and not already %
+                    if raw_value.replace('.', '', 1).isdigit():
+                        formatted_value = f"{raw_value}%"
+                    elif raw_value.endswith("%"):
+                        formatted_value = raw_value
+                    else:
+                        formatted_value = raw_value
+
+                    paragraph = paragraph.replace(f"{{{ph}}}", formatted_value)
+
+                # ----------------- Format Month ----------------- #
                 month_val = row.get("Month", "")
                 try:
                     month = pd.to_datetime(str(month_val)).strftime("%B %Y")
                 except:
                     month = str(month_val).strip()
 
-                # --------------------- Create Image --------------------- #
+                # ----------------- Create Image ----------------- #
                 img = Image.open(resource_path("static/certificate.png")).convert("RGB")
                 draw = ImageDraw.Draw(img)
                 img_width, _ = img.size
@@ -161,8 +179,11 @@ def index():
                 para_font = ImageFont.truetype(resource_path("static/Montserrat-Bold.ttf"), 40)
                 draw_paragraph(draw, paragraph, para_font, para_x, PARA_Y, para_max_width, PARA_LINE_SPACING)
 
-                # Save PDF to ZIP
-                safe_name = "".join(c for c in name if c.isalnum() or c in (" ", "_")).rstrip().replace(" ", "_")
+                # ----------------- Save PDF to ZIP ----------------- #
+                safe_name = "".join(
+                    c for c in name if c.isalnum() or c in (" ", "_")
+                ).rstrip().replace(" ", "_")
+
                 img_bytes = io.BytesIO()
                 img.save(img_bytes, "PDF", resolution=100.0)
                 img_bytes.seek(0)
@@ -170,14 +191,13 @@ def index():
 
                 generated_count += 1
 
-            except Exception as row_error:
+            except Exception:
                 logging.exception(f"Error processing row {idx+1}")
                 continue
 
         zipf.close()
         output_buffer.seek(0)
 
-        # Save ZIP in session
         session["cert_zip"] = output_buffer.getvalue()
         session["total"] = generated_count
 
@@ -190,9 +210,16 @@ def index():
 def download_zip():
     if "cert_zip" not in session:
         return "No certificates generated yet!", 400
+
     output_buffer = io.BytesIO(session["cert_zip"])
     output_buffer.seek(0)
-    return send_file(output_buffer, as_attachment=True, download_name="All_Certificates.zip", mimetype="application/zip")
+
+    return send_file(
+        output_buffer,
+        as_attachment=True,
+        download_name="All_Certificates.zip",
+        mimetype="application/zip"
+    )
 
 # ----------------- Run App ----------------- #
 if __name__ == "__main__":
