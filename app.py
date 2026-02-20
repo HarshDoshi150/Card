@@ -113,8 +113,10 @@ def index():
 
         # --------------------- Placeholder Validation --------------------- #
         placeholders_in_template = re.findall(r"{(.*?)}", paragraph_template)
+
         missing_placeholders = [
-            ph for ph in placeholders_in_template if ph.title() not in data.columns
+            ph for ph in placeholders_in_template
+            if ph.title() not in data.columns
         ]
 
         if missing_placeholders:
@@ -134,17 +136,16 @@ def index():
                 if not name:
                     continue
 
-                # ----------------- AUTO % FORMATTING ----------------- #
+                # ----------------- CONTROLLED % FORMATTING ----------------- #
                 paragraph = paragraph_template
 
                 for ph in placeholders_in_template:
-                    raw_value = str(row.get(ph.title(), "N/A")).strip()
+                    column_name = ph.title()
+                    raw_value = str(row.get(column_name, "N/A")).strip()
 
-                    # Auto add % if numeric and not already %
-                    if raw_value.replace('.', '', 1).isdigit():
+                    # Add % ONLY if placeholder is Conversion
+                    if column_name == "Conversion":
                         formatted_value = f"{raw_value}%"
-                    elif raw_value.endswith("%"):
-                        formatted_value = raw_value
                     else:
                         formatted_value = raw_value
 
